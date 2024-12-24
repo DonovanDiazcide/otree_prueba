@@ -1,70 +1,11 @@
 from os import environ
 
 SESSION_CONFIGS = [
-    dict(
-        name="generic",
-        display_name="generic stimuli recognition task",
-        num_demo_participants=1,
-        app_sequence=["generic"],
-        categories={'foo': 'emojis_positive', 'bar': 'emojis_negative'},
-        labels={'foo': 'Positive', 'bar': 'Negative', 'baz': "None"},
-    ),
-    dict(
-        name="ldt_yesno",
-        display_name="LDT with yes/no responses",
-        num_demo_participants=1,
-        app_sequence=["ldt_yesno"],
-        labels={'word': 'word', 'nonword': "non-word"},
-    ),
-    dict(
-        name="ldt_gonogo",
-        display_name="LDT with go/nogo",
-        num_demo_participants=1,
-        app_sequence=["ldt_gonogo"],
-        labels={'word': 'word', 'nonword': "non-word"},
-    ),
-    dict(
-        name="ldt_priming",
-        display_name="LDT with semantic priming",
-        num_demo_participants=1,
-        app_sequence=["ldt_priming"],
-        labels={'word': 'word', 'nonword': "non-word"},
-    ),
-    dict(
-        name="sliders",
-        display_name="RET Slider task",
-        num_demo_participants=1,
-        app_sequence=["sliders"],
-    ),
-    dict(
-        name="decoding",
-        display_name="RET Decoding numbers to words",
-        num_demo_participants=1,
-        app_sequence=["real_effort"],
-        task='decoding',
-        attempts_per_puzzle=1,
-    ),
-    dict(
-        name="transcription",
-        display_name="RET Transcription of text from an image",
-        num_demo_participants=1,
-        app_sequence=["real_effort"],
-        task='transcription',
-        attempts_per_puzzle=2,
-        retry_delay=3.0,
-    ),
-    dict(
-        name="matrices",
-        display_name="RET Counting symbols in a matrix",
-        num_demo_participants=1,
-        app_sequence=["real_effort"],
-        task='matrix',
-        attempts_per_puzzle=1,
-    ),
+
     dict(
         name="iat_words",
         display_name="IAT using words, from CSV",
-        num_demo_participants=1,
+        num_demo_participants=2,
         app_sequence=["iat"],
         primary=['male', 'female'],
         secondary=['career', 'family'],
@@ -73,7 +14,7 @@ SESSION_CONFIGS = [
     dict(
         name="iat_images",
         display_name="IAT using images",
-        num_demo_participants=1,
+        num_demo_participants=2,
         app_sequence=["iat"],
         primary_images=True,
         primary=['images:felidae', 'images:canidae'],
@@ -84,7 +25,7 @@ SESSION_CONFIGS = [
     dict(
         name="iat_mixed",
         display_name="IAT using images and words",
-        num_demo_participants=1,
+        num_demo_participants=2,
         app_sequence=["iat"],
         primary_images=True,
         primary=['images:felidae', 'images:canidae'],
@@ -117,9 +58,9 @@ ADMIN_USERNAME = "admin"
 # for security, best to set admin password in an environment variable
 ADMIN_PASSWORD = environ.get("OTREE_ADMIN_PASSWORD")
 
-DEMO_PAGE_TITLE = "Real-effort tasks"
+DEMO_PAGE_TITLE = "Welcome to IAT based experiment"
 DEMO_PAGE_INTRO_HTML = """
-Real-effort tasks with multiple configuration options.
+Espera las instrucciones para saber a qué página del IAT ingresar
 """
 
 SECRET_KEY = "2015765205890"

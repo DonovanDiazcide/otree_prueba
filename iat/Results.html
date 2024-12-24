@@ -7,30 +7,31 @@
 {% endblock %}
 
 {{ block content }}
+    <h2>Resultados del Jugador</h2>
+    <p>Nombre: {{ player_name }}</p>
+    <p>Edad: {{ player_age }}</p>
+    <p>Deporte favorito: {{ player_sports }}</p>
+    <p>Número aleatorio: {{ player_random_number }}</p>
 
-    <p>Your d-score is {{dscore}}
-    </p>
-
+    <h2>Tu d-score es {{ dscore }}</h2>
     <div class="d-flex flex-row">
         <div class="flex-shrink-1 m-2">
-            {{neg_pairs.left.primary}} + {{neg_pairs.left.secondary}}
+            {{ neg_pairs.left.primary }} + {{ neg_pairs.left.secondary }}
             <br>
-            {{neg_pairs.right.primary}} + {{neg_pairs.right.secondary}}
+            {{ neg_pairs.right.primary }} + {{ neg_pairs.right.secondary }}
         </div>
         <div class="flex-fill d-flex flex-column align-items-stretch justify-content-center">
-            <input readonly type="range" min="-2" max="2" value="{{dscore}}">
+            <input readonly type="range" min="-2" max="2" value="{{ dscore }}">
             <div class="d-flex flex-row justify-content-between">
                 <span>-2</span>
                 <span>0</span>
                 <span>+2</span>
             </div>
         </div>
-
         <div class="flex-shrink-1 m-2">
-            {{pos_pairs.left.primary}} + {{pos_pairs.left.secondary}}
+            {{ pos_pairs.left.primary }} + {{ pos_pairs.left.secondary }}
             <br>
-            {{pos_pairs.right.primary}} + {{pos_pairs.right.secondary}}
+            {{ pos_pairs.right.primary }} + {{ pos_pairs.right.secondary }}
         </div>
     </div>
-
 {{ endblock }}

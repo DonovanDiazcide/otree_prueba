@@ -9,8 +9,6 @@ from . import stats
 doc = """
 Implicit Association Test, draft
 """
-
-
 class Constants(BaseConstants):
     name_in_url = 'iat'
     players_per_group = None
@@ -26,7 +24,6 @@ def url_for_image(filename):
 
 class Subsession(BaseSubsession):
     practice = models.BooleanField()
-
     primary_left = models.StringField()
     primary_right = models.StringField()
     secondary_left = models.StringField()
@@ -110,11 +107,15 @@ class Group(BaseGroup):
 
 
 class Player(BasePlayer):
-    iteration = models.IntegerField(initial=0)
-    num_trials = models.IntegerField(initial=0)
-    num_correct = models.IntegerField(initial=0)
-    num_failed = models.IntegerField(initial=0)
-
+    iteration = models.IntegerField(initial=0)  # Contador para iteraciones del jugador
+    num_trials = models.IntegerField(initial=0)  # Número total de intentos del jugador
+    num_correct = models.IntegerField(initial=0)  # Número de respuestas correctas
+    num_failed = models.IntegerField(initial=0)  # Número de respuestas incorrectas
+    name = models.StringField(label="Nombre")
+    age = models.IntegerField(label="Edad", min=0, max=99)
+    sports = models.StringField(label="Deporte favorito")
+    random_number = models.IntegerField(label="Número aleatorio", min=1, max=20)
+    dscore = models.FloatField()
 
 class Trial(ExtraModel):
     """A record of single iteration
@@ -410,6 +411,26 @@ class RoundN(Page):
 
     live_method = play_game
 
+class UserInfo(Page):
+    form_model = 'player'
+    form_fields = ['name', 'age', 'sports', 'random_number']
+    template_name = "iat/UserInfo.html"
+
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        # Establecer valores predeterminados si están vacíos
+        if not player.name:
+            player.name = "Anónimo"
+        if not player.age:
+            player.age = 18
+        if not player.sports:
+            player.sports = "Sin especificar"
+        if not player.random_number:
+            player.random_number = 0
 
 class Results(Page):
     @staticmethod
@@ -427,6 +448,7 @@ class Results(Page):
             values = [t.reaction_time for t in trials]
             return values
 
+        # Extraer datos de las rondas para calcular el d-score
         data3 = extract(3)
         data4 = extract(4)
         data6 = extract(6)
@@ -434,12 +456,27 @@ class Results(Page):
 
         dscore = stats.dscore(data3, data4, data6, data7)
 
-        # combinations for positive score
+        # Guardar el dscore en el jugador
+        player.dscore = dscore
+
+        # Obtener combinaciones para pares positivos y negativos
         labels3 = labels_for_block(get_block_for_round(3, player.session.params))
-        # combinations for negative score
         labels6 = labels_for_block(get_block_for_round(6, player.session.params))
 
-        return dict(dscore=dscore, pos_pairs=labels3, neg_pairs=labels6)
+        # Manejar valores del jugador
+        player_name = player.field_maybe_none('name') or "Anónimo"
+        player_age = player.field_maybe_none('age') or 18
+        player_sports = player.field_maybe_none('sports') or "Sin especificar"
+        player_random_number = player.field_maybe_none('random_number') or 0
 
+        return dict(
+            dscore=dscore,
+            pos_pairs=labels3,
+            neg_pairs=labels6,
+            player_name=player_name,
+            player_age=player_age,
+            player_sports=player_sports,
+            player_random_number=player_random_number,
+        )
 
-page_sequence = [Intro, RoundN, Results]
+page_sequence = [Intro, UserInfo, RoundN, Results]

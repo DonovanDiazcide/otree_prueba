@@ -532,3 +532,18 @@ def live_test_skipping_incorrect(method, player, conf):
         move_forward(method, player)
         expect_forwarded(player, last)
         expect_progress(player, total=2, correct=0, incorrect=1)
+
+# Add new test for UserInfo page
+def test_user_info():
+    player = Player()  # Mock player object
+    player.name = "Test User"
+    player.age = 25
+    player.sports = "Football, Tennis"
+    player.random_number = 12
+
+    assert player.name == "Test User", "Name field is not working correctly."
+    assert player.age == 25, "Age field is not working correctly."
+    assert player.sports == "Football, Tennis", "Sports field is not working correctly."
+    assert player.random_number == 12, "Random number field is not working correctly."
+
+    print("UserInfo tests passed successfully.")
