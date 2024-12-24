@@ -105,7 +105,6 @@ def creating_session(subsession: Subsession):
 class Group(BaseGroup):
     pass
 
-
 class Player(BasePlayer):
     iteration = models.IntegerField(initial=0)  # Contador para iteraciones del jugador
     num_trials = models.IntegerField(initial=0)  # Número total de intentos del jugador
@@ -113,8 +112,18 @@ class Player(BasePlayer):
     num_failed = models.IntegerField(initial=0)  # Número de respuestas incorrectas
     name = models.StringField(label="Nombre")
     age = models.IntegerField(label="Edad", min=0, max=99)
-    sports = models.StringField(label="Deporte favorito")
-    random_number = models.IntegerField(label="Número aleatorio", min=1, max=20)
+    sports = models.StringField(
+        widget=widgets.RadioSelect,
+        choices=[
+            ('Football', 'Football'),
+            ('Basketball', 'Basketball'),
+            ('Tennis', 'Tennis'),
+            ('Swimming', 'Swimming'),
+            ('Other', 'Other'),
+        ],
+        label="¿Cuál es tu deporte favorito?"
+    )
+    random_number = models.IntegerField(label="Número aleatorio entre 1 y 20", min=1, max=20)
     dscore = models.FloatField()
 
 class Trial(ExtraModel):
@@ -414,7 +423,6 @@ class RoundN(Page):
 class UserInfo(Page):
     form_model = 'player'
     form_fields = ['name', 'age', 'sports', 'random_number']
-    template_name = "iat/UserInfo.html"
 
     @staticmethod
     def is_displayed(player):

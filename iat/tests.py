@@ -534,6 +534,7 @@ def live_test_skipping_incorrect(method, player, conf):
         expect_progress(player, total=2, correct=0, incorrect=1)
 
 # Add new test for UserInfo page
+
 def test_user_info():
     player = Player()  # Mock player object
     player.name = "Test User"
