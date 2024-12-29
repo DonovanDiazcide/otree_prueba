@@ -20,7 +20,7 @@ Configurable parameters (in session config):
 
 0. download/unzip content of this repo into some working directory, or clone it using git 
    ```bash
-   git clone https://github.com/qwiglydee/otree-experiments/](https://github.com/DonovanDiazcide/IAT_LICS
+   git clone https://github.com/DonovanDiazcide/IAT_LICS
    cd otree-experiments
    ```
 1. create and activate virtualenv in working directory
