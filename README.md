@@ -25,6 +25,7 @@ Configurable parameters (in session config):
 1. create and activate virtualenv in working directory
    ```bash
    python -m venv .venv
+   cd .venv
    cd scripts
    activate
    cd..
