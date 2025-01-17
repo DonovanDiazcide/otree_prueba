@@ -22,7 +22,6 @@ Configurable parameters (in session config):
    ```bash
    git clone https://github.com/DonovanDiazcide/IAT_LICS
    cd IAT_LICS
-   cd otree-experiments
    ```
 1. create and activate virtualenv in working directory
    ```bash
