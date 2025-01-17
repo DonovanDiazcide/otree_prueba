@@ -59,7 +59,6 @@ def get_last_puzzle(player: Player) -> Puzzle:
 # utils
 # `m` stands for method, `p` for player
 
-
 @contextmanager
 def expect_failure(*exceptions):
     try:

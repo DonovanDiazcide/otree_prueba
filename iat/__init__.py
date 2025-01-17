@@ -12,7 +12,7 @@ Implicit Association Test, draft
 class Constants(BaseConstants):
     name_in_url = 'iat'
     players_per_group = None
-    num_rounds = 7
+    num_rounds = 14
 
     keys = {"f": 'left', "j": 'right'}
     trial_delay = 0.250
@@ -68,7 +68,6 @@ def labels_for_block(block):
                     labels[side][cls] = cat
     return labels
 
-
 def get_num_iterations_for_round(rnd):
     """Get configured number of iterations
     The `rnd`: Player or Subsession
@@ -76,7 +75,6 @@ def get_num_iterations_for_round(rnd):
     idx = rnd.round_number
     num = rnd.session.params['num_iterations'][idx]
     return num
-
 
 def creating_session(subsession: Subsession):
     session = subsession.session
@@ -87,7 +85,8 @@ def creating_session(subsession: Subsession):
         primary_images=False,
         secondary=[None, None],
         secondary_images=False,
-        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20},
+        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
+                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20},
     )
     session.params = {}
     for param in defaults:
@@ -125,6 +124,10 @@ class Player(BasePlayer):
     )
     random_number = models.IntegerField(label="Número aleatorio entre 1 y 20", min=1, max=20)
     dscore = models.FloatField()
+
+    # nuevos dscores:
+    dscore1 = models.FloatField()
+    dscore2 = models.FloatField()
 
 class Trial(ExtraModel):
     """A record of single iteration
@@ -177,7 +180,6 @@ def get_current_trial(player: Player):
         [trial] = trials
         return trial
 
-
 def encode_trial(trial: Trial):
     return dict(
         cls=trial.stimulus_cls,
@@ -218,7 +220,7 @@ def custom_export(players):
         "reaction_time",
     ]
     for p in players:
-        if p.round_number not in (3, 4, 6, 7):
+        if p.round_number not in (3, 4, 6, 7, 10, 11, 13, 14):
             continue
         participant = p.participant
         session = p.session
@@ -368,13 +370,9 @@ def play_game(player: Player, message: dict):
         return {
             my_id: dict(type='status', progress=get_progress(player), iterations_left=0)
         }
-
     raise RuntimeError("unrecognized message from client")
 
-
 # PAGES
-
-
 class Intro(Page):
     @staticmethod
     def is_displayed(player):
@@ -443,7 +441,7 @@ class UserInfo(Page):
 class Results(Page):
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 7
+        return player.round_number == 14
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -456,20 +454,30 @@ class Results(Page):
             values = [t.reaction_time for t in trials]
             return values
 
+        # primer iat:
+
         # Extraer datos de las rondas para calcular el d-score
         data3 = extract(3)
         data4 = extract(4)
         data6 = extract(6)
         data7 = extract(7)
 
-        dscore = stats.dscore(data3, data4, data6, data7)
-
-        # Guardar el dscore en el jugador
-        player.dscore = dscore
+        dscore_iat1 = stats.dscore(data3, data4, data6, data7)
 
         # Obtener combinaciones para pares positivos y negativos
         labels3 = labels_for_block(get_block_for_round(3, player.session.params))
         labels6 = labels_for_block(get_block_for_round(6, player.session.params))
+
+        # segundo iat:
+
+        # Extraer datos de las rondas para calcular el d-score
+        data10 = extract(10)
+        data11 = extract(11)
+        data13 = extract(13)
+        data14 = extract(14)
+
+        dscore_iat2 = stats.dscore(data10, data11, data13, data14)
+
 
         # Manejar valores del jugador
         player_name = player.field_maybe_none('name') or "Anónimo"
@@ -478,7 +486,8 @@ class Results(Page):
         player_random_number = player.field_maybe_none('random_number') or 0
 
         return dict(
-            dscore=dscore,
+            dscore_iat1=dscore_iat1,
+            dscore_iat2=dscore_iat2,
             pos_pairs=labels3,
             neg_pairs=labels6,
             player_name=player_name,

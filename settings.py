@@ -3,34 +3,17 @@ from os import environ
 SESSION_CONFIGS = [
 
     dict(
-        name="iat_words",
-        display_name="IAT using words, from CSV",
-        num_demo_participants=2,
-        app_sequence=["iat"],
-        primary=['male', 'female'],
-        secondary=['career', 'family'],
-        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20},
-    ),
-    dict(
         name="iat_images",
         display_name="IAT using images",
         num_demo_participants=2,
         app_sequence=["iat"],
         primary_images=True,
-        primary=['images:felidae', 'images:canidae'],
+        primary=['images:felidae', 'images:canidae', 'images:white', "images:black"],
         secondary_images=True,
         secondary=['emojis:positive', 'emojis:negative'],
-        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20},
-    ),
-    dict(
-        name="iat_mixed",
-        display_name="IAT using images and words",
-        num_demo_participants=2,
-        app_sequence=["iat"],
-        primary_images=True,
-        primary=['images:felidae', 'images:canidae'],
-        secondary=['male', 'female'],
-        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20},
+        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
+                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20
+                        },
     ),
 ]
 

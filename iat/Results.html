@@ -7,8 +7,8 @@
 {% endblock %}
 
 {{ block content }}
-
-    <h2>Tu d-score es {{ dscore }}</h2>
+{# crear un apartado para el IAT 2. #}
+    <h2>Tu d-score es {{ dscore_iat1 }}</h2>
     <div class="d-flex flex-row">
         <div class="flex-shrink-1 m-2">
             {{ neg_pairs.left.primary }} + {{ neg_pairs.left.secondary }}
@@ -16,7 +16,7 @@
             {{ neg_pairs.right.primary }} + {{ neg_pairs.right.secondary }}
         </div>
         <div class="flex-fill d-flex flex-column align-items-stretch justify-content-center">
-            <input readonly type="range" min="-2" max="2" value="{{ dscore }}">
+            <input readonly type="range" min="-2" max="2" value="{{ dscore_iat1 }}">
             <div class="d-flex flex-row justify-content-between">
                 <span>-2</span>
                 <span>0</span>
@@ -30,3 +30,6 @@
         </div>
     </div>
 {{ endblock }}
+
+{# comentario: para mostrar los resultados simplemente utiliza una forma fija para hacerlo, las categorías no tienen porque estar dinámicas.
+aunque tal vez sí, puedo crear nuevas variables para el iat2.#}
