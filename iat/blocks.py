@@ -103,6 +103,18 @@ BLOCKS1 = {
         'left': {'primary': 4, 'secondary': 1},
         'right': {'primary': 3, 'secondary': 2},
     },
+    15: {  # Definición para la ronda 15 (FeedbackIAT y Results)
+            'title': "Round 15 (FeedbackIAT and Results)",
+            'practice': False,
+            'left': {
+                'primary': '',  # Cadena vacía para evitar conflictos
+                'secondary': ''
+            },
+            'right': {
+                'primary': '',
+                'secondary': ''
+            }
+        }
 }
 
 # alternative setup
@@ -161,16 +173,22 @@ BLOCKS = BLOCKS1
 
 
 def configure(block, config):
-    """Insert categories' names from config into block setup
+    """Insertar nombres de categorías desde la configuración en el setup del bloque.
     block: {'left': {'primary': 1, 'secondary': 1}, 'right': {'primary': 2, 'secondary': 2}}
     config: {'primary': ['male', 'female'], 'secondary': ['work', 'family']}
     result: {'left': {'primary': 'male', 'secondary': 'work'}, 'right': {'primary': 'female', 'secondary': 'family'}}
     """
-
     result = copy.deepcopy(block)
-
     for side in ['left', 'right']:
         for cls, idx in block[side].items():
-            result[side][cls] = config[cls][idx - 1]
-
+            if isinstance(idx, int):
+                try:
+                    # Asegurarse de que el índice esté dentro del rango
+                    result[side][cls] = config[cls][idx - 1]
+                except (IndexError, KeyError):
+                    # Si el índice está fuera de rango o la clave no existe, asignar una cadena vacía
+                    result[side][cls] = ''
+            else:
+                # Si idx no es un entero, asignar una cadena vacía o manejarlo según tu lógica
+                result[side][cls] = ''
     return result

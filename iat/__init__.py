@@ -6,13 +6,14 @@ from . import stimuli
 from . import blocks
 from . import stats
 
+
 doc = """
 Implicit Association Test, draft
 """
 class Constants(BaseConstants):
     name_in_url = 'iat'
     players_per_group = None
-    num_rounds = 14
+    num_rounds = 15
 
     keys = {"f": 'left', "j": 'right'}
     trial_delay = 0.250
@@ -86,7 +87,8 @@ def creating_session(subsession: Subsession):
         secondary=[None, None],
         secondary_images=False,
         num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
-                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20},
+                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
+                        15:1},
     )
     session.params = {}
     for param in defaults:
@@ -123,18 +125,109 @@ class Player(BasePlayer):
         label="¿Cuál es tu deporte favorito?"
     )
     random_number = models.IntegerField(label="Número aleatorio entre 1 y 20", min=1, max=20)
-    dscore = models.FloatField()
+
+    # Nuevo campo para la pregunta moral
+    moral_question = models.StringField(label="Aquí va una pregunta moral", blank=True)
 
     # nuevos dscores:
     dscore1 = models.FloatField()
     dscore2 = models.FloatField()
+
+    # Nuevos campos para las etapas después del iat:
+
+    iat1_self_assessment = models.StringField(
+        label="¿Cómo crees que te fue en el IAT 1 de male y female?",
+        choices=[
+            "Asociación leve a male+feliz, female+triste",
+            "Asociación leve a male+triste, female+feliz",
+            "Asociación moderada a male+feliz, female+triste",
+            "Asociación moderada a male+triste, female+feliz",
+            "Asociación fuerte a male+feliz, female+triste",
+            "Asociación fuerte a male+triste, female+feliz",
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    # Respuesta de autoevaluación para el IAT 2 (Ejemplo: Gato y Perro)
+    iat2_self_assessment = models.StringField(
+        label="¿Cómo crees que te fue en el IAT 2 de gato y perro?",
+        choices=[
+            "Asociación leve a gato+feliz, perro+triste",
+            "Asociación leve a gato+triste, perro+feliz",
+            "Asociación moderada a gato+feliz, perro+triste",
+            "Asociación moderada a gato+triste, perro+feliz",
+            "Asociación fuerte a gato+feliz, perro+triste",
+            "Asociación fuerte a gato+triste, perro+feliz",
+        ],
+        widget=widgets.RadioSelect
+    )
+
+    # Variables para el rango moralmente aceptable del IAT 1
+    iat1_lower_limit = models.FloatField(
+        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 1?",
+        help_text="Debe estar entre -2 y 0.",
+        min=-2,
+        max=0
+    )
+
+    iat1_upper_limit = models.FloatField(
+        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 1?",
+        help_text="Debe estar entre 0 y 2.",
+        min=0,
+        max=2
+    )
+
+    # Variables para el rango moralmente aceptable del IAT 2
+    iat2_lower_limit = models.FloatField(
+        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 2?",
+        help_text="Debe estar entre -2 y 0.",
+        min=-2,
+        max=0
+    )
+
+    iat2_upper_limit = models.FloatField(
+        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 2?",
+        help_text="Debe estar entre 0 y 2.",
+        min=0,
+        max=2
+    )
+
+    hide_iat1_info_in_range = models.BooleanField(
+        label="¿Quieres que se esconda la información del IAT 1 para decisiones morales si está dentro de tu rango moralmente aceptable?",
+        choices=[
+            (True, "Sí"),
+            (False, "No")
+        ]
+    )
+    hide_iat1_info_out_of_range = models.BooleanField(
+        label="¿Quieres que se esconda la información del IAT 1 para decisiones morales si está fuera de tu rango moralmente aceptable?",
+        choices=[
+            (True, "Sí"),
+            (False, "No")
+        ]
+    )
+
+    # Campos para ocultar información del IAT 2
+    hide_iat2_info_in_range = models.BooleanField(
+        label="¿Quieres que se esconda la información del IAT 2 para decisiones morales si está dentro de tu rango moralmente aceptable?",
+        choices=[
+            (True, "Sí"),
+            (False, "No")
+        ]
+    )
+    hide_iat2_info_out_of_range = models.BooleanField(
+        label="¿Quieres que se esconda la información del IAT 2 para decisiones morales si está fuera de tu rango moralmente aceptable?",
+        choices=[
+            (True, "Sí"),
+            (False, "No")
+        ]
+    )
 
 class Trial(ExtraModel):
     """A record of single iteration
     Keeps corner categories from round setup to simplify furher analysis.
     The stimulus class is for appropriate styling on page.
     """
-
     player = models.Link(Player)
     round = models.IntegerField(initial=0)
     iteration = models.IntegerField(initial=0)
@@ -220,7 +313,7 @@ def custom_export(players):
         "reaction_time",
     ]
     for p in players:
-        if p.round_number not in (3, 4, 6, 7, 10, 11, 13, 14):
+        if p.round_number not in (3, 4, 6, 7, 10, 11, 13, 14, 15):
             continue
         participant = p.participant
         session = p.session
@@ -372,7 +465,7 @@ def play_game(player: Player, message: dict):
         }
     raise RuntimeError("unrecognized message from client")
 
-# PAGES
+# PAGES.
 class Intro(Page):
     @staticmethod
     def is_displayed(player):
@@ -389,8 +482,54 @@ class Intro(Page):
         )
 
 
+class UserInfo(Page):
+    form_model = 'player'
+    form_fields = ['name', 'age', 'sports', 'random_number']
+
+    @staticmethod
+    def is_displayed(player):
+        return player.round_number == 1
+
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        # Establecer valores predeterminados si están vacíos
+        if not player.name:
+            player.name = "Anónimo"
+        if not player.age:
+            player.age = 18
+        if not player.sports:
+            player.sports = "Sin especificar"
+        if not player.random_number:
+            player.random_number = 0
+
+class PreguntaM(Page):
+    form_model = 'player'
+    form_fields = ['moral_question']
+
+    @staticmethod
+    def is_displayed(player):
+        # Mostrar esta página solo una vez por participante
+        return player.participant.vars.get('pregunta_moral_completada', False) == False
+
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        # Marcar que la página ya fue completada
+        player.participant.vars['pregunta_moral_completada'] = True
+
+    @staticmethod
+    def error_message(player, values):
+        # Validar que el campo moral_question no esté vacío
+        if not values.get('moral_question'):
+            return "Por favor, responde la pregunta antes de continuar."
+
+
 class RoundN(Page):
     template_name = "iat/Main.html"
+
+    @staticmethod
+    def is_displayed(player: Player):
+        # Mostrar solo en rondas de IAT
+        return player.round_number <= 14
 
     @staticmethod
     def js_vars(player: Player):
@@ -418,30 +557,35 @@ class RoundN(Page):
 
     live_method = play_game
 
-class UserInfo(Page):
+class FeedbackIAT(Page):
     form_model = 'player'
-    form_fields = ['name', 'age', 'sports', 'random_number']
+    form_fields = [
+        'iat1_self_assessment',
+        'iat2_self_assessment',
+        'iat1_lower_limit',  # Límite inferior para el IAT 1
+        'iat1_upper_limit',  # Límite superior para el IAT 1
+        'iat2_lower_limit',  # Límite inferior para el IAT 2
+        'iat2_upper_limit',  # Límite superior para el IAT 2
+        'hide_iat1_info_in_range',  # Respuesta para IAT 1 dentro del rango
+        'hide_iat1_info_out_of_range',  # Respuesta para IAT 1 fuera del rango
+        'hide_iat2_info_in_range',  # Respuesta para IAT 2 dentro del rango
+        'hide_iat2_info_out_of_range'  # Respuesta para IAT 2 fuera del rango
+    ]
 
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 1
+        # Mostrar esta página solo en la ronda 15
+        return player.round_number == 15
 
     @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        # Establecer valores predeterminados si están vacíos
-        if not player.name:
-            player.name = "Anónimo"
-        if not player.age:
-            player.age = 18
-        if not player.sports:
-            player.sports = "Sin especificar"
-        if not player.random_number:
-            player.random_number = 0
+    def vars_for_template(player: Player):
+        return {}
+
 
 class Results(Page):
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 14
+        return player.round_number == 15
 
     @staticmethod
     def vars_for_template(player: Player):
@@ -496,4 +640,4 @@ class Results(Page):
             player_random_number=player_random_number,
         )
 
-page_sequence = [Intro, UserInfo, RoundN, Results]
+page_sequence = [Intro, UserInfo, PreguntaM, RoundN, FeedbackIAT, Results]

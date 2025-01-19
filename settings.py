@@ -12,7 +12,8 @@ SESSION_CONFIGS = [
         secondary_images=True,
         secondary=['emojis:positive', 'emojis:negative'],
         num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
-                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20
+                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
+                        15:1,
                         },
     ),
 ]
