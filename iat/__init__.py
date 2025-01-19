@@ -13,15 +13,13 @@ Implicit Association Test, draft
 class Constants(BaseConstants):
     name_in_url = 'iat'
     players_per_group = None
-    num_rounds = 15
+    num_rounds = 18
 
     keys = {"f": 'left', "j": 'right'}
     trial_delay = 0.250
 
-
 def url_for_image(filename):
     return f"/static/images/{filename}"
-
 
 class Subsession(BaseSubsession):
     practice = models.BooleanField()
@@ -88,7 +86,7 @@ def creating_session(subsession: Subsession):
         secondary_images=False,
         num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
                         8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
-                        15:1},
+                        15:1, 16:1, 17:1, 18:1},
     )
     session.params = {}
     for param in defaults:
@@ -165,30 +163,30 @@ class Player(BasePlayer):
     # Variables para el rango moralmente aceptable del IAT 1
     iat1_lower_limit = models.FloatField(
         label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 1?",
-        help_text="Debe estar entre -2 y 0.",
+        help_text="Debe estar entre -2 y 2.",
         min=-2,
-        max=0
+        max=2
     )
 
     iat1_upper_limit = models.FloatField(
         label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 1?",
-        help_text="Debe estar entre 0 y 2.",
-        min=0,
+        help_text="Debe estar entre -2 y 2. (deber ser mayor el límite inferior)",
+        min=-2,
         max=2
     )
 
     # Variables para el rango moralmente aceptable del IAT 2
     iat2_lower_limit = models.FloatField(
         label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 2?",
-        help_text="Debe estar entre -2 y 0.",
+        help_text="Debe estar entre -2 y 2.",
         min=-2,
-        max=0
+        max=2
     )
 
     iat2_upper_limit = models.FloatField(
         label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 2?",
-        help_text="Debe estar entre 0 y 2.",
-        min=0,
+        help_text="Debe estar entre -2 y 2. (deber ser mayor el límite inferior)",
+        min=-2,
         max=2
     )
 
@@ -222,6 +220,44 @@ class Player(BasePlayer):
             (False, "No")
         ]
     )
+
+    # variables para el juego del dictador:
+
+    # Variables de dinero inicial para cada caso
+    dinero_inicial_cats = models.FloatField(initial=100.0)
+    dinero_inicial_dogs = models.FloatField(initial=100.0)
+    dinero_inicial_white = models.FloatField(initial=100.0)
+    dinero_inicial_black = models.FloatField(initial=100.0)
+
+    asignacion_cats = models.FloatField(
+        min=0.0,
+        max=100.0,
+        label="¿Cuánto deseas asignar a ti mismo para gatos callejeros?",
+        help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
+    )
+    asignacion_dogs = models.FloatField(
+        min=0.0,
+        max=100.0,
+        label="¿Cuánto deseas asignar a ti mismo para perros callejeros?",
+        help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
+    )
+    asignacion_white = models.FloatField(
+        min=0.0,
+        max=100.0,
+        label="¿Cuánto deseas asignar a ti mismo para personas blancas?",
+        help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
+
+    )
+    asignacion_black = models.FloatField(
+        min=0.0,
+        max=100.0,
+        label="¿Cuánto deseas asignar a ti mismo para personas negras?",
+        help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
+    )
+
+
+
+
 
 class Trial(ExtraModel):
     """A record of single iteration
@@ -313,7 +349,7 @@ def custom_export(players):
         "reaction_time",
     ]
     for p in players:
-        if p.round_number not in (3, 4, 6, 7, 10, 11, 13, 14, 15):
+        if p.round_number not in (3, 4, 6, 7, 10, 11, 13, 14, 15, 16, 17, 18):
             continue
         participant = p.participant
         session = p.session
@@ -488,11 +524,13 @@ class UserInfo(Page):
 
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 1
+        # Mostrar esta página solo una vez por participante
+        return player.participant.vars.get('user_info_completed', False) == False
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
         # Establecer valores predeterminados si están vacíos
+        participant = player.participant
         if not player.name:
             player.name = "Anónimo"
         if not player.age:
@@ -501,6 +539,10 @@ class UserInfo(Page):
             player.sports = "Sin especificar"
         if not player.random_number:
             player.random_number = 0
+
+        # Marcar que la información ya fue recopilada
+        participant.vars['user_info_completed'] = True
+
 
 class PreguntaM(Page):
     form_model = 'player'
@@ -581,6 +623,21 @@ class FeedbackIAT(Page):
     def vars_for_template(player: Player):
         return {}
 
+    @staticmethod
+    def error_message(player, values):
+        errors = {}
+
+        # Validar límites de IAT 1
+        if values['iat1_lower_limit'] >= values['iat1_upper_limit']:
+            errors['iat1_upper_limit'] = "El límite superior debe ser mayor al límite inferior para el IAT 1."
+
+        # Validar límites de IAT 2
+        if values['iat2_lower_limit'] >= values['iat2_upper_limit']:
+            errors['iat2_upper_limit'] = "El límite superior debe ser mayor al límite inferior para el IAT 2."
+
+        # Retornar errores si los hay
+        if errors:
+            return errors
 
 class Results(Page):
     @staticmethod
@@ -608,9 +665,13 @@ class Results(Page):
 
         dscore_iat1 = stats.dscore(data3, data4, data6, data7)
 
-        # Obtener combinaciones para pares positivos y negativos
-        labels3 = labels_for_block(get_block_for_round(3, player.session.params))
-        labels6 = labels_for_block(get_block_for_round(6, player.session.params))
+        # Obtener combinaciones de pares positivos y negativos para el primer IAT
+        pos_pairs_iat1 = labels_for_block(get_block_for_round(3, player.session.params))
+        neg_pairs_iat1 = labels_for_block(get_block_for_round(6, player.session.params))
+
+        # Obtener combinaciones de pares positivos y negativos para el segundo IAT
+        pos_pairs_iat2 = labels_for_block(get_block_for_round(10, player.session.params))
+        neg_pairs_iat2 = labels_for_block(get_block_for_round(13, player.session.params))
 
         # segundo iat:
 
@@ -622,6 +683,9 @@ class Results(Page):
 
         dscore_iat2 = stats.dscore(data10, data11, data13, data14)
 
+        # Guardar resultados en el jugador
+        player.dscore1 = dscore_iat1
+        player.dscore2 = dscore_iat2
 
         # Manejar valores del jugador
         player_name = player.field_maybe_none('name') or "Anónimo"
@@ -629,15 +693,121 @@ class Results(Page):
         player_sports = player.field_maybe_none('sports') or "Sin especificar"
         player_random_number = player.field_maybe_none('random_number') or 0
 
+        # Validar si los resultados están dentro o fuera de los rangos definidos
+        dscore1_in_range = (
+                player.dscore1 >= player.iat1_lower_limit and
+                player.dscore1 <= player.iat1_upper_limit
+        )
+        dscore2_in_range = (
+                player.dscore2 >= player.iat2_lower_limit and
+                player.dscore2 <= player.iat2_upper_limit
+        )
+
+        # Decidir si mostrar u ocultar resultados en base a las preferencias del usuario
+        show_dscore1 = (
+                (dscore1_in_range and not player.hide_iat1_info_in_range) or
+                (not dscore1_in_range and not player.hide_iat1_info_out_of_range)
+        )
+        show_dscore2 = (
+                (dscore2_in_range and not player.hide_iat2_info_in_range) or
+                (not dscore2_in_range and not player.hide_iat2_info_out_of_range)
+        )
+
+        # Mensajes según las decisiones
+        message_dscore1 = "Decidiste que se mostraran los resultados para el IAT 1." if show_dscore1 else "Decidiste que no se mostrarán los resultados para el IAT 1."
+        message_dscore2 = "Decidiste que se mostraran los resultados para el IAT 2." if show_dscore2 else "Decidiste que no se mostrarán los resultados para el IAT 2."
+
         return dict(
-            dscore_iat1=dscore_iat1,
-            dscore_iat2=dscore_iat2,
-            pos_pairs=labels3,
-            neg_pairs=labels6,
+            show_dscore1 = show_dscore1,
+            show_dscore2 = show_dscore2,
+            dscore1=dscore_iat1 if show_dscore1 else None,
+            dscore2=dscore_iat2 if show_dscore2 else None,
+            message_dscore1 = message_dscore1,
+            message_dscore2 = message_dscore2,
+            pos_pairs_iat1=pos_pairs_iat1,
+            neg_pairs_iat1=neg_pairs_iat1,
+            pos_pairs_iat2=pos_pairs_iat2,
+            neg_pairs_iat2=neg_pairs_iat2,
             player_name=player_name,
             player_age=player_age,
             player_sports=player_sports,
             player_random_number=player_random_number,
         )
 
-page_sequence = [Intro, UserInfo, PreguntaM, RoundN, FeedbackIAT, Results]
+class AsignacionDinero(Page):
+    form_model = 'player'
+
+    @staticmethod
+    def is_displayed(player):
+        return 15 <= player.round_number <= 18
+
+    @staticmethod
+    def get_form_fields(player):
+        """Determina qué campo de asignación mostrar según la ronda."""
+        if player.round_number == 15:
+            return ['asignacion_cats']
+        elif player.round_number == 16:
+            return ['asignacion_dogs']
+        elif player.round_number == 17:
+            return ['asignacion_white']
+        elif player.round_number == 18:
+            return ['asignacion_black']
+        return []
+
+    @staticmethod
+    def vars_for_template(self):
+        """Proporciona variables adicionales para la plantilla."""
+        if self.round_number == 15:
+            contexto = {
+                'inicial': self.player.dinero_inicial_cats,
+                'beneficiario': 'una asociación sin fines de lucro para gatos callejeros'
+            }
+        elif self.round_number == 16:
+            contexto = {
+                'inicial': self.player.dinero_inicial_dogs,
+                'beneficiario': 'una asociación sin fines de lucro para perros callejeros'
+            }
+        elif self.round_number == 17:
+            contexto = {
+                'inicial': self.player.dinero_inicial_white,
+                'beneficiario': 'una asociación sin fines de lucro para personas blancas'
+            }
+        elif self.round_number == 18:
+            contexto = {
+                'inicial': self.player.dinero_inicial_black,
+                'beneficiario': 'una asociación sin fines de lucro para personas negras'
+            }
+        else:
+            contexto = {}
+        return contexto
+
+    @staticmethod
+    def error_message(self, values):
+        """Valida que la asignación no exceda el dinero inicial."""
+        if self.round_number == 15:
+            asignacion = values.get('asignacion_cats')
+            inicial = self.player.dinero_inicial_cats
+            if asignacion > inicial:
+                return 'La asignación no puede exceder los 100 créditos.'
+        elif self.round_number == 16:
+            asignacion = values.get('asignacion_dogs')
+            inicial = self.player.dinero_inicial_dogs
+            if asignacion > inicial:
+                return 'La asignación no puede exceder los 100 créditos.'
+        elif self.round_number == 17:
+            asignacion = values.get('asignacion_white')
+            inicial = self.player.dinero_inicial_white
+            if asignacion > inicial:
+                return 'La asignación no puede exceder los 100 créditos.'
+        elif self.round_number == 18:
+            asignacion = values.get('asignacion_black')
+            inicial = self.player.dinero_inicial_black
+            if asignacion > inicial:
+                return 'La asignación no puede exceder los 100 créditos.'
+
+    @staticmethod
+    def before_next_page(self):
+        """Lógica adicional después de enviar el formulario, si es necesario."""
+        pass
+
+page_sequence = [Intro, UserInfo, PreguntaM, RoundN, FeedbackIAT, Results, AsignacionDinero]

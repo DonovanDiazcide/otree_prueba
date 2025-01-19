@@ -104,7 +104,7 @@ BLOCKS1 = {
         'right': {'primary': 3, 'secondary': 2},
     },
     15: {  # Definición para la ronda 15 (FeedbackIAT y Results)
-            'title': "Round 15 (FeedbackIAT and Results)",
+            'title': "Round 15 (FeedbackIAT, results, game)",
             'practice': False,
             'left': {
                 'primary': '',  # Cadena vacía para evitar conflictos
@@ -114,7 +114,43 @@ BLOCKS1 = {
                 'primary': '',
                 'secondary': ''
             }
+        },
+    16: {  # Definición para la ronda 15 (FeedbackIAT y Results)
+        'title': "Round 16 (game)",
+        'practice': False,
+        'left': {
+            'primary': '',  # Cadena vacía para evitar conflictos
+            'secondary': ''
+        },
+        'right': {
+            'primary': '',
+            'secondary': ''
         }
+    },
+    17: {  # Definición para la ronda 15 (FeedbackIAT y Results)
+        'title': "Round 17 (game)",
+        'practice': False,
+        'left': {
+            'primary': '',  # Cadena vacía para evitar conflictos
+            'secondary': ''
+        },
+        'right': {
+            'primary': '',
+            'secondary': ''
+        }
+    },
+    18: {  # Definición para la ronda 15 (FeedbackIAT y Results)
+        'title': "Round 18 (game)",
+        'practice': False,
+        'left': {
+            'primary': '',  # Cadena vacía para evitar conflictos
+            'secondary': ''
+        },
+        'right': {
+            'primary': '',
+            'secondary': ''
+        }
+    }
 }
 
 # alternative setup
