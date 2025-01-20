@@ -13,7 +13,7 @@ Implicit Association Test, draft
 class Constants(BaseConstants):
     name_in_url = 'iat'
     players_per_group = None
-    num_rounds = 18
+    num_rounds = 19
 
     keys = {"f": 'left', "j": 'right'}
     trial_delay = 0.250
@@ -75,8 +75,10 @@ def get_num_iterations_for_round(rnd):
     num = rnd.session.params['num_iterations'][idx]
     return num
 
-def creating_session(subsession: Subsession):
+def creating_session(subsession):
     session = subsession.session
+
+    # Configuración por defecto
     defaults = dict(
         retry_delay=0.5,
         trial_delay=0.5,
@@ -84,21 +86,51 @@ def creating_session(subsession: Subsession):
         primary_images=False,
         secondary=[None, None],
         secondary_images=False,
-        num_iterations={1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
-                        8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
-                        15:1, 16:1, 17:1, 18:1},
+        num_iterations={
+            1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
+            8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
+            15: 1, 16: 1, 17: 1, 18: 1, 19: 1
+        },
     )
+
+    # Actualizar parámetros de la sesión con configuración personalizada
     session.params = {}
     for param in defaults:
         session.params[param] = session.config.get(param, defaults[param])
 
-    block = get_block_for_round(subsession.round_number, session.params)
+    # Generar el orden de rondas aleatorio
+    if not hasattr(session, 'order_sequence'):
+        orden1 = list(range(1, 15))
+        orden2 = list(range(8, 15)) + list(range(1, 8))
+        rondas_15_18 = list(range(15, 19))
+        random.shuffle(rondas_15_18)
 
+        # Selección aleatoria entre orden1 y orden2
+        orden_inicial_elegido = random.choice([orden1, orden2])
+        orden_completo = orden_inicial_elegido + rondas_15_18 + [19]
+
+        # Almacenar el orden en la sesión
+        session.order_sequence = orden_completo
+
+        # Imprimir el orden para depuración
+        print("Orden generado:", orden_completo)
+
+    # Usar el orden generado para la ronda actual
+    orden_completo = session.order_sequence
+    actual_round = orden_completo[subsession.round_number - 1]
+
+    # Obtener el bloque correspondiente
+    block = get_block_for_round(actual_round, session.params)
+
+    # Asignar los parámetros al subsession
     subsession.practice = block['practice']
     subsession.primary_left = block['left'].get('primary', "")
     subsession.primary_right = block['right'].get('primary', "")
     subsession.secondary_left = block['left'].get('secondary', "")
     subsession.secondary_right = block['right'].get('secondary', "")
+
+    # Imprimir la ronda actual para depuración
+    print(f"Ronda actual: {subsession.round_number}, actual_round: {actual_round}")
 
 
 class Group(BaseGroup):
@@ -232,32 +264,28 @@ class Player(BasePlayer):
     asignacion_cats = models.FloatField(
         min=0.0,
         max=100.0,
-        label="¿Cuánto deseas asignar a ti mismo para gatos callejeros?",
+        label="¿Cuánto quieres donar a una asociación para gatos callejeros?",
         help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
     )
     asignacion_dogs = models.FloatField(
         min=0.0,
         max=100.0,
-        label="¿Cuánto deseas asignar a ti mismo para perros callejeros?",
+        label="¿Cuánto quieres donar a una asociación para perros callejeros?",
         help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
     )
     asignacion_white = models.FloatField(
         min=0.0,
         max=100.0,
-        label="¿Cuánto deseas asignar a ti mismo para personas blancas?",
+        label="¿Cuánto quieres donar a una asociación para personas blancas?",
         help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
 
     )
     asignacion_black = models.FloatField(
         min=0.0,
         max=100.0,
-        label="¿Cuánto deseas asignar a ti mismo para personas negras?",
+        label="¿Cuánto quieres donar a una asociación para personas negras?",
         help_text="no puedes dar cantidades negativas ni pasarte de tu asignación inicial"
     )
-
-
-
-
 
 class Trial(ExtraModel):
     """A record of single iteration
@@ -505,17 +533,25 @@ def play_game(player: Player, message: dict):
 class Intro(Page):
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 1
+        # Display the page in rounds 1 and 8
+        return player.round_number in [1, 8]
 
     @staticmethod
     def vars_for_template(player: Player):
-        # using 3rd block to take categories labels in instructions
+        # Determine the block based on the round number
         params = player.session.params
-        block = get_block_for_round(3, params)
+        if player.round_number == 1:
+            block = get_block_for_round(3, params)  # Use block for round 3 in round 1
+        elif player.round_number == 8:
+            block = get_block_for_round(10, params)  # Use block for round 10 in round 8
+        else:
+            block = None  # Fallback in case of unexpected behavior
+
         return dict(
             params=params,
-            labels=labels_for_block(block),
+            labels=labels_for_block(block) if block else {},
         )
+
 
 
 class UserInfo(Page):
@@ -755,26 +791,26 @@ class AsignacionDinero(Page):
         return []
 
     @staticmethod
-    def vars_for_template(self):
+    def vars_for_template(player: Player):
         """Proporciona variables adicionales para la plantilla."""
-        if self.round_number == 15:
+        if player.round_number == 15:
             contexto = {
-                'inicial': self.player.dinero_inicial_cats,
+                'inicial': player.dinero_inicial_cats,
                 'beneficiario': 'una asociación sin fines de lucro para gatos callejeros'
             }
-        elif self.round_number == 16:
+        elif player.round_number == 16:
             contexto = {
-                'inicial': self.player.dinero_inicial_dogs,
+                'inicial': player.dinero_inicial_dogs,
                 'beneficiario': 'una asociación sin fines de lucro para perros callejeros'
             }
-        elif self.round_number == 17:
+        elif player.round_number == 17:
             contexto = {
-                'inicial': self.player.dinero_inicial_white,
+                'inicial': player.dinero_inicial_white,
                 'beneficiario': 'una asociación sin fines de lucro para personas blancas'
             }
-        elif self.round_number == 18:
+        elif player.round_number == 18:
             contexto = {
-                'inicial': self.player.dinero_inicial_black,
+                'inicial': player.dinero_inicial_black,
                 'beneficiario': 'una asociación sin fines de lucro para personas negras'
             }
         else:
@@ -782,32 +818,33 @@ class AsignacionDinero(Page):
         return contexto
 
     @staticmethod
-    def error_message(self, values):
+    def error_message(player, values):
         """Valida que la asignación no exceda el dinero inicial."""
-        if self.round_number == 15:
+        if player.round_number == 15:
             asignacion = values.get('asignacion_cats')
-            inicial = self.player.dinero_inicial_cats
+            inicial = player.dinero_inicial_cats
             if asignacion > inicial:
                 return 'La asignación no puede exceder los 100 créditos.'
-        elif self.round_number == 16:
+        elif player.round_number == 16:
             asignacion = values.get('asignacion_dogs')
-            inicial = self.player.dinero_inicial_dogs
+            inicial = player.dinero_inicial_dogs
             if asignacion > inicial:
                 return 'La asignación no puede exceder los 100 créditos.'
-        elif self.round_number == 17:
+        elif player.round_number == 17:
             asignacion = values.get('asignacion_white')
-            inicial = self.player.dinero_inicial_white
+            inicial = player.dinero_inicial_white
             if asignacion > inicial:
                 return 'La asignación no puede exceder los 100 créditos.'
-        elif self.round_number == 18:
+        elif player.round_number == 18:
             asignacion = values.get('asignacion_black')
-            inicial = self.player.dinero_inicial_black
+            inicial = player.dinero_inicial_black
             if asignacion > inicial:
                 return 'La asignación no puede exceder los 100 créditos.'
 
     @staticmethod
-    def before_next_page(self):
-        """Lógica adicional después de enviar el formulario, si es necesario."""
-        pass
+    def before_next_page(player: Player, timeout_happened):
+        # Marcar que la página ya fue completada
+        player.participant.vars['asignacionesDinero_completada'] = True
+
 
 page_sequence = [Intro, UserInfo, PreguntaM, RoundN, FeedbackIAT, Results, AsignacionDinero]

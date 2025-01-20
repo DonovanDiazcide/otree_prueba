@@ -150,7 +150,21 @@ BLOCKS1 = {
             'primary': '',
             'secondary': ''
         }
+    },
+    19: {  # Definición para la ronda 15 (FeedbackIAT y Results)
+        'title': "Agradecimiento",
+        'practice': False,
+        'left': {
+            'primary': '',  # Cadena vacía para evitar conflictos
+            'secondary': ''
+        },
+        'right': {
+            'primary': '',
+            'secondary': ''
+        }
     }
+
+
 }
 
 # alternative setup
