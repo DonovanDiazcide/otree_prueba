@@ -10,6 +10,7 @@ the csv should contain (at least) two columns: category, stimulus
 
 from pathlib import Path
 import csv
+
 DICT = {
     'canidae': ['dog', 'wolf', 'coyote', 'fox', 'jackal'],
     'felidae': ['cat', 'tiger', 'lynx', 'wildcat', 'cougar'],
@@ -20,14 +21,14 @@ DICT = {
         "Vulpes_vulpes_ssp_fulvus.jpg",
         "320px-Black-backed_jackal_(Canis_mesomelas_mesomelas)_2.jpg",
     ],
-    'images:felidae': [
+    "images:felidae": [
         "320px-Cat_August_2010-4.jpg",
         "320px-Walking_tiger_female.jpg",
         "159px-Lynx_lynx2.jpg",
         "Felis_silvestris_silvestris_Luc_Viatour.jpg",
         "320px-Mountain_Lion_in_Glacier_National_Park.jpg",
     ],
-    'positive': ['amusement', 'fun', 'friendship', 'happiness', 'joy'],
+    'positive': ['amusement', 'fun', 'friendship', 'happyness', 'joy'],
     'negative': ['anger', 'hate', 'fear', 'panic', 'sickness'],
     'emojis:positive': [
         "emoji_u263a.png",
@@ -43,22 +44,6 @@ DICT = {
         "emoji_u1f623.png",
         "emoji_u1f62c.png",
     ],
-    'male': ['man', 'boy', 'father', 'son', 'uncle'],
-    'female': ['woman', 'girl', 'mother', 'daughter', 'aunt'],
-    'images:male': [
-        "man_suit.jpg",
-        "boy_playing.jpg",
-        "father_with_son.jpg",
-        "uncle_smiling.jpg",
-        "male_teacher.jpg",
-    ],
-    'images:female': [
-        "woman_working.jpg",
-        "girl_reading.jpg",
-        "mother_with_child.jpg",
-        "aunt_happy.jpg",
-        "female_doctor.jpg",
-    ],
 }
 
 csvfile = Path(__file__).parent / "stimuli.csv"
@@ -72,5 +57,3 @@ if csvfile.exists():
             if cat not in DICT:
                 DICT[cat] = []
             DICT[cat].append(word)
-
-
