@@ -46,7 +46,7 @@ class PlayerBot(Bot):
         expect(player.num_failed, num_incorrect)
         expect(player.num_trials, num_total)
 
-        if self.player.round_number == 7:
+        if self.player.round_number == 14:
             yield Submission(Results, check_html=False)
 
 
@@ -55,10 +55,8 @@ def get_last_puzzle(player: Player) -> Puzzle:
     trial = trials[-1] if len(trials) else None
     return trial
 
-
 # utils
 # `m` stands for method, `p` for player
-
 
 @contextmanager
 def expect_failure(*exceptions):

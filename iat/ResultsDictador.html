@@ -1,0 +1,24 @@
+{% block title %}Resultados Finales del Dictador{% endblock %}
+
+{% block content %}
+    <h3>Resumen de Asignaciones</h3>
+    <p>
+        A continuación, se muestra un resumen de todas las asignaciones que has realizado:
+    </p>
+    {% for offer in dictator_offers %}
+        <h4>Ronda {{ offer.round }} - Categoría: {{ offer.category }}</h4>
+        <p>
+            <strong>Mantener para ti:</strong> {{ offer.kept }}
+        </p>
+        <p>
+            <strong>Asignación a {{ offer.category }}:</strong> {{ offer.assigned }}
+        </p>
+    {% endfor %}
+    <p>
+        Gracias por tu participación.
+    </p>
+
+    <br>
+
+
+{% endblock %}
