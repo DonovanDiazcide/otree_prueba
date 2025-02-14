@@ -94,53 +94,8 @@ BLOCKS1 = {
         'left': {'primary': 4, 'secondary': 1},  # female + positive
         'right': {'primary': 3, 'secondary': 2},  # male + negative
     },
-# e.g: male vs female
-    8: {
-        'title': "Round 8 (practice)",
-        'practice': True,
-        'left': {'primary': 3},
-        'right': {'primary': 4},
-    },
-    # e.g: work vs family
-    9: {
-        'title': "Round 9 (practice)",
-        'practice': True,
-        'left': {'secondary': 1},
-        'right': {'secondary': 2},
-    },
-    # e.g: male+work vs female+family
-    10: {
-        'title': "Round 10",
-        'practice': False,
-        'left': {'primary': 3, 'secondary': 1},
-        'right': {'primary': 4, 'secondary': 2},
-    },
-    11: {
-        'title': "Round 11",
-        'practice': False,
-        'left': {'primary': 3, 'secondary': 1},
-        'right': {'primary': 4, 'secondary': 2},
-    },
-    # e.g: female vs male
-    12: {
-        'title': "Round 12 (practice)",
-        'practice': True,
-        'left': {'primary': 4},
-        'right': {'primary': 2},
-    },
-    # e.g: female+work vs male+family
-    13: {
-        'title': "Round 13",
-        'practice': False,
-        'left': {'primary': 4, 'secondary': 1},
-        'right': {'primary': 3, 'secondary': 2},
-    },
-    14: {
-        'title': "Round 14",
-        'practice': False,
-        'left': {'primary': 4, 'secondary': 1},
-        'right': {'primary': 3, 'secondary': 2},
-    },
+    # cambio: la razón por la que aparecía candidae acá era porque tenía bloques repetidos.
+
     15: {  # Definición para la ronda 15 (FeedbackIAT y Results)
             'title': "Round 15 (FeedbackIAT, results, game)",
             'practice': False,
@@ -201,8 +156,6 @@ BLOCKS1 = {
             'secondary': ''
         }
     }
-
-
 }
 
 

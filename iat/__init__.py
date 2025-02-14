@@ -10,11 +10,11 @@ import math
 from statistics import mean, stdev
 from decimal import Decimal
 
-
 doc = """
 Implicit Association Test, draft
 """
 from statistics import mean, stdev
+
 
 def dscore1(data3: list, data4: list, data6: list, data7: list):
     # Filtrar valores demasiado largos.
@@ -100,7 +100,7 @@ def dscore2(data10: list, data13: list, data11: list, data14: list):
 
 class Constants(BaseConstants):
     name_in_url = 'iat'
-    players_per_group = None  # Mantener 2 para juegos del dictador
+    players_per_group = None
     num_rounds = 18  # 14 para IAT + 4 para dictador
 
     keys = {"f": 'left', "j": 'right'}
@@ -108,8 +108,10 @@ class Constants(BaseConstants):
     endowment = Decimal('100')  # Añadido para dictador
     categories = ['perro', 'gato', 'blanco', 'negro']  # Categorías para el Dictador
 
+
 def url_for_image(filename):
     return f"/static/images/{filename}"
+
 
 class Subsession(BaseSubsession):
     practice = models.BooleanField()
@@ -117,6 +119,7 @@ class Subsession(BaseSubsession):
     primary_right = models.StringField()
     secondary_left = models.StringField()
     secondary_right = models.StringField()
+
 
 def creating_session(self):
     session = self.session
@@ -128,10 +131,10 @@ def creating_session(self):
         secondary=[None, None],
         secondary_images=False,
         num_iterations={
-            # Rondas existentes para IAT
+            # Rondas existentes para IAT.
             1: 5, 2: 5, 3: 10, 4: 20, 5: 5, 6: 10, 7: 20,
             8: 5, 9: 5, 10: 10, 11: 20, 12: 5, 13: 10, 14: 20,
-            # Rondas adicionales para Dictador
+            # Rondas adicionales para Dictador.
             15: 1, 16: 1, 17: 1, 18: 1
         },
     )
@@ -155,11 +158,14 @@ def creating_session(self):
                 list(range(8, 15)) + list(range(1, 8))  # Orden invertido: 8-14,1-7
             ])
             player.participant.vars['iat_round_order'] = iat_ordering
+            #print(iat_ordering)
 
         # Aleatorizar las categorías del Dictador para las rondas 15-18
         shuffled_categories = Constants.categories.copy()
         random.shuffle(shuffled_categories)
         session.vars['shuffled_dictator_categories'] = shuffled_categories
+
+        #print("shuffled categories:", shuffled_categories)
 
     # Asignar categorías al Dictador basadas en la lista aleatoria para las rondas 15-18
     if self.round_number in [15, 16, 17, 18]:
@@ -170,6 +176,7 @@ def creating_session(self):
             for group in self.get_groups():
                 group.dictator_category = assigned_category
 
+
 def get_block_for_round(rnd, params):
     """Get a round setup from BLOCKS with actual categories' names substituted from session config"""
     if rnd in blocks.BLOCKS:
@@ -179,6 +186,7 @@ def get_block_for_round(rnd, params):
     else:
         # Retorna un bloque vacío o predeterminado para rondas que no lo necesitan
         return {}
+
 
 def thumbnails_for_block(block, params):
     """Return image urls for each category in block.
@@ -218,6 +226,7 @@ def get_num_iterations_for_round(rnd):
     num = rnd.session.params['num_iterations'][idx]
     return num
 
+
 class Player(BasePlayer):
     iteration = models.IntegerField(initial=0)  # Contador para iteraciones del jugador
     num_trials = models.IntegerField(initial=0)  # Número total de intentos del jugador
@@ -243,23 +252,24 @@ class Player(BasePlayer):
     # Nuevo campo para la pregunta moral
     moral_question = models.StringField(label="Aquí va una pregunta moral", blank=True)
 
-    iat1_self_assessment = models.StringField(
-        label="¿Cómo crees que te fue en el IAT 1 de male y female?",
+    iat2_self_assessment = models.StringField(
+        label="¿Cómo crees que te fue en el IAT de blanco y negro?",
         choices=[
-            "Asociación leve a male+feliz, female+triste",
-            "Asociación leve a male+triste, female+feliz",
-            "Asociación moderada a male+feliz, female+triste",
-            "Asociación moderada a male+triste, female+feliz",
-            "Asociación fuerte a male+feliz, female+triste",
-            "Asociación fuerte a male+triste, female+feliz",
+            "Neutral",
+            "Asociación leve a blanco+feliz, negro+triste",
+            "Asociación leve a blanco+triste, negro+feliz",
+            "Asociación moderada a blanco+feliz, negro+triste",
+            "Asociación moderada a blanco+triste, negro+feliz",
+            "Asociación fuerte a blanco+feliz, negro+triste",
+            "Asociación fuerte a blanco+triste, negro+feliz",
         ],
         widget=widgets.RadioSelect
     )
 
-    # Respuesta de autoevaluación para el IAT 2 (Ejemplo: Gato y Perro)
-    iat2_self_assessment = models.StringField(
-        label="¿Cómo crees que te fue en el IAT 2 de gato y perro?",
+    iat1_self_assessment = models.StringField(
+        label="¿Cómo crees que te fue en el IAT de gato y perro?",
         choices=[
+            "Neutral",
             "Asociación leve a gato+feliz, perro+triste",
             "Asociación leve a gato+triste, perro+feliz",
             "Asociación moderada a gato+feliz, perro+triste",
@@ -270,89 +280,83 @@ class Player(BasePlayer):
         widget=widgets.RadioSelect
     )
 
-    # Variables para el rango moralmente aceptable del IAT 1
-    iat1_lower_limit = models.FloatField(
-        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 1?",
-        help_text="Debe estar entre -2 y 0.",
+    # Variables para el rango moralmente aceptable del IAT 1. nota: hay que cambiar esto para que vayan de -2 a 2.
+    iat2_lower_limit = models.FloatField(
+        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT negro blanco?",
+        help_text="Debe estar entre -2 y 2.",
         min=-2,
-        max=0
+        max=2
     )
 
-    iat1_upper_limit = models.FloatField(
-        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 1?",
-        help_text="Debe estar entre 0 y 2.",
-        min=0,
+    iat2_upper_limit = models.FloatField(
+        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT negro blanco?",
+        help_text="Debe estar entre -2 y 2.",
+        min=-2,
         max=2
     )
 
     # Variables para el rango moralmente aceptable del IAT 2
-    iat2_lower_limit = models.FloatField(
-        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT 2?",
-        help_text="Debe estar entre -2 y 0.",
+    iat1_lower_limit = models.FloatField(
+        label="¿Cuál es el límite inferior del rango moralmente aceptable para el IAT gato perro?",
+        help_text="Debe estar entre -2 y 2.",
         min=-2,
-        max=0
-    )
-
-    iat2_upper_limit = models.FloatField(
-        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT 2?",
-        help_text="Debe estar entre 0 y 2.",
-        min=0,
         max=2
     )
 
-    hide_iat1_info_in_range = models.BooleanField(
-        label="¿Quieres que se esconda la información del IAT 1 para decisiones morales si está dentro de tu rango moralmente aceptable?",
-        choices=[
-            (True, "Sí"),
-            (False, "No")
-        ]
-    )
-    hide_iat1_info_out_of_range = models.BooleanField(
-        label="¿Quieres que se esconda la información del IAT 1 para decisiones morales si está fuera de tu rango moralmente aceptable?",
-        choices=[
-            (True, "Sí"),
-            (False, "No")
-        ]
+    iat1_upper_limit = models.FloatField(
+        label="¿Cuál es el límite superior del rango moralmente aceptable para el IAT gato perro?",
+        help_text="Debe estar entre -2 y 2.",
+        min=-2,
+        max=2
     )
 
-    # Campos para ocultar información del IAT 2
-    hide_iat2_info_in_range = models.BooleanField(
-        label="¿Quieres que se esconda la información del IAT 2 para decisiones morales si está dentro de tu rango moralmente aceptable?",
-        choices=[
-            (True, "Sí"),
-            (False, "No")
-        ]
-    )
-    hide_iat2_info_out_of_range = models.BooleanField(
-        label="¿Quieres que se esconda la información del IAT 2 para decisiones morales si está fuera de tu rango moralmente aceptable?",
-        choices=[
-            (True, "Sí"),
-            (False, "No")
-        ]
+    iat1_probability = models.IntegerField(
+        label="Indica la probabilidad con la que se te revelará información de tu IAT gato perro si tu puntuación está dentro del rango moralmente aceptable:",
+        choices=[[80, "80"], [20, "20"]],
+        widget=widgets.RadioSelect,
+        blank=True
     )
 
-
-
-    # Probabilidad asignada para IAT 1
-    iat1_assessment_probability = models.IntegerField(
-        label="¿Qué probabilidad le asignas a la veracidad de tu resultado en el IAT 1? (1-100)",
-        min=1,
-        max=100
+    iat1_probability_out_of_range = models.IntegerField(
+        label="Indica la probabilidad con la que se te revelará información de tu IAT gato perro si tu puntuación está fuera del rango moralmente aceptable:",
+        choices=[[80, "80"], [20, "20"]],
+        widget=widgets.RadioSelect,
+        blank=True
     )
 
-    # Probabilidad asignada para IAT 2
-    iat2_assessment_probability = models.IntegerField(
-        label="¿Qué probabilidad le asignas a la veracidad de tu resultado en el IAT 2? (1-100)",
-        min=1,
-        max=100
+    iat2_probability = models.IntegerField(
+        label="Indica la probabilidad con la que se te revelará información de tu IAT negro blanco si tu puntuación está dentro del rango moralmente aceptable:",
+        choices=[[80, "80"], [20, "20"]],
+        widget=widgets.RadioSelect,
+        blank=True
     )
 
-    #campos para el juego del dictador.
+    iat2_probability_out_of_range = models.IntegerField(
+        label="Indica la probabilidad con la que se te revelará información de tu IAT negro blanco si tu puntuación está fuera del rango moralmente aceptable:",
+        choices=[[80, "80"], [20, "20"]],
+        widget=widgets.RadioSelect,
+        blank=True
+    )
+
+    # Variables para capturar la asociación calculada (se asignan en DictatorIntroduction)
+    iat1_association = models.StringField(blank=True)
+    iat2_association = models.StringField(blank=True)
+
+    # Nuevas variables para capturar si el jugador adivinó su resultado
+    iat1_guess_correct = models.BooleanField(blank=True)
+    iat2_guess_correct = models.BooleanField(blank=True)
+
+    # Nuevas variables para capturar si el iat del jugador está en su rango moralmente aceptable
+    iat1_moral_range = models.BooleanField(blank=True)
+    iat2_moral_range = models.BooleanField(blank=True)
+
+    # campos para el juego del dictador.
     dictator_offer = models.CurrencyField(
         min=0,
         max=Constants.endowment,
         label="¿Cuánto te gustaría ofrecer?"
     )
+
 
 class Group(BaseGroup):
     dictator_category = models.StringField(
@@ -371,6 +375,7 @@ class Group(BaseGroup):
         max=Constants.endowment,
         doc="""Cantidad asignada a la categoría."""
     )
+
 
 def get_actual_iat_round(player: Player):
     order = player.participant.vars.get('iat_round_order')
@@ -398,6 +403,7 @@ def set_payoffs(group: Group):
     # Asignar el payoff al jugador (manteniendo 'kept')
     for player in group.get_players():
         player.payoff = kept
+
 
 class Trial(ExtraModel):
     """A record of single iteration
@@ -527,6 +533,7 @@ def custom_export(players):
                 group.assigned,
                 p.payoff,
             ]
+
 
 def play_game(player: Player, message: dict):
     """Main game workflow
@@ -659,19 +666,56 @@ def play_game(player: Player, message: dict):
 # PAGES
 
 class Intro(Page):
+    # comentario en caso de ser necesario: cambié está página para que se
+    # pudiera mostrar los labels correctos de inicios del IAT, pero causó un
+    # problema con el primer intento, si esto vuelve a suceder, regresar al
+    # sigueiente código:
+    #     @staticmethod
+    #     def is_displayed(player):
+    #         # Display the page in rounds 1 and 8
+    #         return player.round_number in [1, 8]
+    #
+    #     @staticmethod
+    #     def vars_for_template(player: Player):
+    #         # Determine the block based on the round number
+    #         params = player.session.params
+    #         if player.round_number == 1:
+    #             block = get_block_for_round(3, params)  # Use block for round 3 in round 1
+    #         elif player.round_number == 8:
+    #             block = get_block_for_round(10, params)  # Use block for round 10 in round 8
+    #         else:
+    #             block = None  # Fallback in case of unexpected behavior
+    #
+    #         return dict(
+    #             params=params,
+    #             labels=labels_for_block(block) if block else {},
+    #         )
+
     @staticmethod
     def is_displayed(player):
-        return player.round_number == 1
+        return player.round_number in [1, 8]
 
     @staticmethod
     def vars_for_template(player: Player):
-        # using 3rd block to take categories labels in instructions
         params = player.session.params
-        block = get_block_for_round(3, params)
+        iat_round_order = player.participant.vars.get('iat_round_order', [])
+
+        if iat_round_order == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+            block_number = {1: 3, 8: 10}
+        elif iat_round_order == [8, 9, 10, 11, 12, 13, 14, 1, 2, 3, 4, 5, 6, 7]:
+            block_number = {1: 10, 8: 3}
+        else:
+            block_number = {}
+
+        block_id = block_number.get(player.round_number, None)
+        # Asegurar que block sea un diccionario válido
+        block = get_block_for_round(block_id, params) if block_id else None
+
         return dict(
             params=params,
-            labels=labels_for_block(block),
+            labels=labels_for_block(block) if isinstance(block, dict) else {},
         )
+
 
 class RoundN(Page):
     template_name = "iat/Main.html"
@@ -739,6 +783,7 @@ class UserInfo(Page):
         # Marcar que la información ya fue recopilada
         participant.vars['user_info_completed'] = True
 
+
 class PreguntaM(Page):
     form_model = 'player'
     form_fields = ['moral_question']
@@ -759,27 +804,172 @@ class PreguntaM(Page):
         if not values.get('moral_question'):
             return "Por favor, responde la pregunta antes de continuar."
 
+
+# acá el detalle es que las validaciones de los campos están mal, aunque fáciles de cambiar, no lo haré ahora. 4 de febrero del 2025.
 class IATAssessmentPage(Page):
     form_model = 'player'
     form_fields = [
         'iat1_self_assessment',
         'iat2_self_assessment',
-        'iat1_lower_limit',  # Límite inferior para el IAT 1
-        'iat1_upper_limit',  # Límite superior para el IAT 1
-        'iat2_lower_limit',  # Límite inferior para el IAT 2
-        'iat2_upper_limit'   # Límite superior para el IAT 2
+        'iat2_lower_limit',  # Límite inferior para el IAT negro blanco
+        'iat2_upper_limit',  # Límite superior para el IAT negro blanco
+        'iat1_lower_limit',  # Límite inferior para el IAT blanco negro
+        'iat1_upper_limit'  # Límite superior para el IAT blanco negro
     ]
 
     @staticmethod
-    def is_displayed(player):
+    def is_displayed(player: Player):
         # Mostrar esta página solo en la ronda 15
         return player.round_number == 15
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        group = player.group
+        # Se obtiene la categoría asignada (usada en otros contextos, por ejemplo en el Dictator Game)
+        if group.dictator_category:
+            category = group.dictator_category.capitalize()
+        else:
+            category = "Sin categoría asignada"
+
+        # Función para extraer los tiempos de reacción de las rondas especificadas
+        def extract(rnd):
+            trials = [
+                t
+                for t in Trial.filter(player=player.in_round(rnd))
+                if t.reaction_time is not None
+            ]
+            return [t.reaction_time for t in trials]
+
+        # Extraer datos para el primer IAT (rondas 3, 4, 6, 7)
+        data3 = extract(3)
+        data4 = extract(4)
+        data6 = extract(6)
+        data7 = extract(7)
+        dscore1_result = dscore1(data3, data4, data6, data7)
+
+        # Extraer datos para el segundo IAT (rondas 10, 13, 11, 14)
+        data10 = extract(10)
+        data13 = extract(13)
+        data11 = extract(11)
+        data14 = extract(14)
+        dscore2_result = dscore2(data10, data13, data11, data14)
+
+        # Recuperar el orden de las rondas y asignar dscores según ello
+        iat_round_order = player.participant.vars.get('iat_round_order', [])
+        if iat_round_order == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+            player.dscore1 = dscore1_result
+            player.dscore2 = dscore2_result
+        elif iat_round_order == [8, 9, 10, 11, 12, 13, 14, 1, 2, 3, 4, 5, 6, 7]:
+            player.dscore1 = dscore2_result
+            player.dscore2 = dscore1_result
+        else:
+            # En caso de otro orden, se asigna directamente
+            player.dscore1 = dscore1_result
+            player.dscore2 = dscore2_result
+
+        # Función para clasificar la asociación según el dscore y la categoría
+        def clasificar(dscore, category):
+            if abs(dscore) < 0.15:
+                return "Neutral"
+            if dscore < 0:
+                if -0.35 <= dscore <= -0.15:
+                    if category == "gato/perro":
+                        return "Leve: perro positivo, gato negativo"
+                    else:  # white/black
+                        return "Leve: black positivo, white negativo"
+                elif -0.65 <= dscore < -0.35:
+                    if category == "gato/perro":
+                        return "Moderada: perro positivo, gato negativo"
+                    else:
+                        return "Moderada: black positivo, white negativo"
+                elif -2 <= dscore < -0.65:
+                    if category == "gato/perro":
+                        return "Fuerte: perro positivo, gato negativo"
+                    else:
+                        return "Fuerte: black positivo, white negativo"
+            else:  # dscore > 0
+                if 0.15 <= dscore <= 0.35:
+                    if category == "gato/perro":
+                        return "Leve: gato positivo, perro negativo"
+                    else:
+                        return "Leve: white positivo, black negativo"
+                elif 0.35 < dscore <= 0.65:
+                    if category == "gato/perro":
+                        return "Moderada: gato positivo, perro negativo"
+                    else:
+                        return "Moderada: white positivo, black negativo"
+                elif 0.65 < dscore <= 2:
+                    if category == "gato/perro":
+                        return "Fuerte: gato positivo, perro negativo"
+                    else:
+                        return "Fuerte: white positivo, black negativo"
+            return "Sin clasificación"
+
+        # Se asigna la asociación de forma fija:
+        # - IAT1 corresponde siempre a "gato/perro"
+        # - IAT2 corresponde siempre a "white/black"
+        player.iat1_association = clasificar(player.dscore1, "gato/perro")
+        player.iat2_association = clasificar(player.dscore2, "white/black")
+
+        return dict(
+            category=category,
+            endowment=Constants.endowment,
+            dscore1=player.dscore1,
+            dscore2=player.dscore2,
+            iat1_association=player.iat1_association,
+            iat2_association=player.iat2_association,
+        )
+
+    @staticmethod
+    def convert_computed(association: str, category: str) -> str:
+        """
+        Convierte el string de asociación calculado al formato de las opciones de la autoevaluación.
+
+        Para "white/black":
+            - "white positivo" se convierte en "blanco+feliz"
+            - "black negativo" se convierte en "negro+triste"
+            - "black positivo" se convierte en "negro+feliz"
+            - "white negativo" se convierte en "blanco+triste"
+
+        Para "gato/perro":
+            - "gato positivo" se convierte en "gato+feliz"
+            - "perro negativo" se convierte en "perro+triste"
+            - "perro positivo" se convierte en "perro+feliz"
+            - "gato negativo" se convierte en "gato+triste"
+
+        Además, transforma el prefijo:
+            - "Leve: "    → "Asociación leve a "
+            - "Moderada: " → "Asociación moderada a "
+            - "Fuerte: "   → "Asociación fuerte a "
+        """
+        if association == "Neutral":
+            return "Neutral"
+        if association.startswith("Leve: "):
+            prefix, rest = "Asociación leve a ", association[len("Leve: "):]
+        elif association.startswith("Moderada: "):
+            prefix, rest = "Asociación moderada a ", association[len("Moderada: "):]
+        elif association.startswith("Fuerte: "):
+            prefix, rest = "Asociación fuerte a ", association[len("Fuerte: "):]
+        else:
+            prefix, rest = "", association
+
+        if category == "white/black":
+            rest = rest.replace("white positivo", "blanco+feliz") \
+                .replace("black negativo", "negro+triste") \
+                .replace("black positivo", "negro+feliz") \
+                .replace("white negativo", "blanco+triste")
+        elif category == "gato/perro":
+            rest = rest.replace("gato positivo", "gato+feliz") \
+                .replace("perro negativo", "perro+triste") \
+                .replace("perro positivo", "perro+feliz") \
+                .replace("gato negativo", "gato+triste")
+        return prefix + rest
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
         participant = player.participant
 
-        # Validar y asignar valores predeterminados si es necesario
+        # Si no se completó la autoevaluación se asigna un valor por defecto
         if not player.iat1_self_assessment:
             player.iat1_self_assessment = "No especificado"
         if not player.iat2_self_assessment:
@@ -788,51 +978,294 @@ class IATAssessmentPage(Page):
         # Marcar que la evaluación del IAT ya fue completada
         participant.vars['iat_assessment_completed'] = True
 
+        # Se convierte la asociación calculada al formato de las opciones
+        # Fijamos:
+        # • IAT1 (gato y perro) se compara con player.iat1_association
+        # • IAT2 (blanco y negro) se compara con player.iat2_association
+        expected_iat1 = IATAssessmentPage.convert_computed(player.iat1_association, "gato/perro")
+        expected_iat2 = IATAssessmentPage.convert_computed(player.iat2_association, "white/black")
+
+        player.iat1_guess_correct = (player.iat1_self_assessment == expected_iat1)
+        player.iat2_guess_correct = (player.iat2_self_assessment == expected_iat2)
+
+        iat1_moral_range = (
+                player.dscore1 >= player.iat1_lower_limit and
+                player.dscore1 <= player.iat1_upper_limit
+        )
+        iat2_moral_range = (
+                player.dscore2 >= player.iat2_lower_limit and
+                player.dscore2 <= player.iat2_upper_limit
+        )
+
+        # asignaciones de las variables.
+        player.iat1_moral_range = iat1_moral_range
+        player.iat2_moral_range = iat2_moral_range
+
+        # Imprimir en consola las asociaciones correctas y las respuestas del usuario
+        # print("ahora, test del programa:")
+        # print("Asociación IAT1 (gato/perro) esperada:", expected_iat1)
+        # print("Asociación IAT1 (gato/perro) ingresada por el usuario:", player.iat1_self_assessment)
+        # print("Asociación IAT2 (blanco/negro) esperada:", expected_iat2)
+        # print("Asociación IAT2 (blanco/negro) ingresada por el usuario:", player.iat2_self_assessment)
+        #
+        # print("Resultado de la adivinanza IAT1 (gato/perro):", player.iat1_guess_correct)
+        # print("Resultado de la adivinanza IAT2 (blanco/negro):", player.iat2_guess_correct)
+        #
+        # print("¿el IAT negro blanco está dentro del rango moral del jugador?", player.iat2_moral_range)
+        # print("¿el IAT gato perro está dentro del rango moral del jugador?", player.iat1_moral_range)
+
     @staticmethod
     def error_message(player, values):
-        # Validar que todos los campos sean completados
         if not values.get('iat1_self_assessment'):
-            return "Por favor, selecciona una opción para el IAT 1."
+            return "Por favor, selecciona una opción para el IAT de gato y perro."
         if not values.get('iat2_self_assessment'):
-            return "Por favor, selecciona una opción para el IAT 2."
-        if values.get('iat1_lower_limit') is None:
-            return "Por favor, ingresa un límite inferior para el rango moralmente aceptable del IAT 1."
-        if values.get('iat1_upper_limit') is None:
-            return "Por favor, ingresa un límite superior para el rango moralmente aceptable del IAT 1."
-        if values['iat1_lower_limit'] >= values['iat1_upper_limit']:
-            return "El límite inferior para el IAT 1 debe ser menor que el límite superior."
+            return "Por favor, selecciona una opción para el IAT de blanco y negro."
         if values.get('iat2_lower_limit') is None:
-            return "Por favor, ingresa un límite inferior para el rango moralmente aceptable del IAT 2."
+            return "Por favor, ingresa un límite inferior para el rango moralmente aceptable del IAT negro blanco."
         if values.get('iat2_upper_limit') is None:
-            return "Por favor, ingresa un límite superior para el rango moralmente aceptable del IAT 2."
+            return "Por favor, ingresa un límite superior para el rango moralmente aceptable del IAT negro blanco."
         if values['iat2_lower_limit'] >= values['iat2_upper_limit']:
-            return "El límite inferior para el IAT 2 debe ser menor que el límite superior."
+            return "El límite inferior para el IAT negro blanco debe ser menor que el límite superior."
+        if values.get('iat1_lower_limit') is None:
+            return "Por favor, ingresa un límite inferior para el rango moralmente aceptable del IAT blanco negro."
+        if values.get('iat1_upper_limit') is None:
+            return "Por favor, ingresa un límite superior para el rango moralmente aceptable del IAT blanco negro."
+        if values['iat1_lower_limit'] >= values['iat1_upper_limit']:
+            return "El límite inferior para el IAT blanco negro debe ser menor que el límite superior."
 
+
+# si Mauricio dice que quiere que el recordatorio se haga entre cada pregunta, tengo que dejar de usar formfields y crer
+# y editar la página MoralDecision de forma manual.
 class MoralDecisionPageCerteza(Page):
     form_model = 'player'
     form_fields = [
-        'hide_iat1_info_in_range',      # Respuesta para IAT 1 dentro del rango
-        'hide_iat1_info_out_of_range',  # Respuesta para IAT 1 fuera del rango
-        'hide_iat2_info_in_range',      # Respuesta para IAT 2 dentro del rango
-        'hide_iat2_info_out_of_range'   # Respuesta para IAT 2 fuera del rango
+        'iat1_probability',
+        'iat1_probability_out_of_range',
+        'iat2_probability',
+        'iat2_probability_out_of_range'
     ]
+
+    # aquí puedo considerar agregar validaciones al formulario para que el usuario no pueda agregar puntuaciones muy pequeñas al programa, con muchos números.
 
     @staticmethod
     def is_displayed(player):
-        # Mostrar esta página solo en la ronda 15
         return player.round_number == 15
 
     @staticmethod
     def vars_for_template(player):
-        user_range_iat1 = f"{player.iat1_lower_limit} a {player.iat1_upper_limit}"
-        user_range_iat2 = f"{player.iat2_lower_limit} a {player.iat2_upper_limit}"
         return {
-            'message_iat1_in_range': f"Si tu IAT 1 está en el rango definido por ti ({user_range_iat1}), ¿quieres que te escondamos la información contenida en el IAT 1 cuando tomes una decisión moral?",
-            'message_iat1_out_of_range': f"Si tu IAT 1 está fuera del rango definido por ti ({user_range_iat1}), ¿quieres que te escondamos la información contenida en el IAT 1 cuando tomes una decisión moral?",
-            'message_iat2_in_range': f"Si tu IAT 2 está en el rango definido por ti ({user_range_iat2}), ¿quieres que te escondamos la información contenida en el IAT 2 cuando tomes una decisión moral?",
-            'message_iat2_out_of_range': f"Si tu IAT 2 está fuera del rango definido por ti ({user_range_iat2}), ¿quieres que te escondamos la información contenida en el IAT 2 cuando tomes una decisión moral?"
+            'iat1_lower_limit': player.iat1_lower_limit,
+            'iat1_upper_limit': player.iat1_upper_limit,
+            'iat2_lower_limit': player.iat2_lower_limit,
+            'iat2_upper_limit': player.iat2_upper_limit,
         }
 
+
+# queda por introducir la función que propuse para esta clase, está en esta página: https://chatgpt.com/g/g-p-6770700264fc81918f62555c338c6f02-literature-review-iat/c/67a0f18e-087c-800c-966d-f4186e249d2e?model=o3-mini-high
+class DictatorIntroduction(Page):
+    """
+    Página de introducción al Juego del Dictador para la categoría asignada.
+    """
+
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number in [15]
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        return dict(
+            endowment=Constants.endowment,
+        )
+
+
+# entonces, en la pagina anterior estoy calculando los dscores de los jugadores, hacerlos
+# en esta sección me permite que pueda acceder a estos valores dentro de las rondas.
+
+# una propuesta para que aparezca con 80% de probabilidad está en el siguiente chat: https://chatgpt.com/g/g-p-6770700264fc81918f62555c338c6f02-literature-review-iat/c/67a3c2bd-eff0-800c-a2c7-2c3614ae93a7
+
+# hace falta probar este caso, donde hago pruebas con la página que propuse para esta clase, el link es: https://chatgpt.com/g/g-p-6770700264fc81918f62555c338c6f02-literature-review-iat/c/67a64686-ecc0-800c-ac14-13e5f56b038e?model=o3-mini
+class DictatorOffer(Page):
+    """
+    Página donde el jugador decide cuánto mantener y cuánto asignar a la categoría.
+    """
+    form_model = 'group'
+    form_fields = ['kept']
+
+    @staticmethod
+    def is_displayed(player: Player):
+        return player.round_number in [15, 16, 17, 18]
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        group = player.group
+        if group.dictator_category:
+            original_category = group.dictator_category.lower()
+            explicit_label = group.dictator_category.capitalize()
+        else:
+            original_category = ""
+            explicit_label = "Sin categoría asignada"
+
+        import random
+        display_label = explicit_label
+
+        # Usar participant.vars para almacenar los valores de forma persistente entre rondas.
+        part_vars = player.participant.vars
+
+        # Para IAT1: moral_range y probabilidades
+        if 'iat1_moral_range' not in part_vars:
+            part_vars['iat1_moral_range'] = player.field_maybe_none("iat1_moral_range")
+        iat1_moral_range = part_vars['iat1_moral_range']
+
+        if 'iat1_probability' not in part_vars:
+            part_vars['iat1_probability'] = player.field_maybe_none("iat1_probability")
+        iat1_probability = part_vars['iat1_probability']
+
+        if 'iat1_probability_out_of_range' not in part_vars:
+            part_vars['iat1_probability_out_of_range'] = player.field_maybe_none("iat1_probability_out_of_range")
+        iat1_probability_out_of_range = part_vars['iat1_probability_out_of_range']
+
+        # Para IAT2: moral_range y probabilidades
+        if 'iat2_moral_range' not in part_vars:
+            part_vars['iat2_moral_range'] = player.field_maybe_none("iat2_moral_range")
+        iat2_moral_range = part_vars['iat2_moral_range']
+
+        if 'iat2_probability' not in part_vars:
+            part_vars['iat2_probability'] = player.field_maybe_none("iat2_probability")
+        iat2_probability = part_vars['iat2_probability']
+
+        if 'iat2_probability_out_of_range' not in part_vars:
+            part_vars['iat2_probability_out_of_range'] = player.field_maybe_none("iat2_probability_out_of_range")
+        iat2_probability_out_of_range = part_vars['iat2_probability_out_of_range']
+
+        # Lógica para categorías 'perro' o 'gato'
+        if original_category in ['perro', 'gato']:
+            substitute_label = "animal"
+            if iat1_moral_range is None:
+                threshold = 0.8
+                debug_msg = ("DEBUG: iat1_moral_range es None. Probabilidad ingresada: None. "
+                             "Usando probabilidad por defecto del 80%.")
+            elif iat1_moral_range is True:
+                if iat1_probability is None:
+                    threshold = 0.8
+                    debug_msg = (
+                        "DEBUG: iat1_moral_range True, pero iat1_probability en blanco. Probabilidad ingresada: None. "
+                        "Usando probabilidad por defecto del 80%.")
+                else:
+                    threshold = iat1_probability / 100.0
+                    debug_msg = f"DEBUG: iat1_moral_range True. Probabilidad ingresada: {iat1_probability}%. Usando iat1_probability."
+            else:  # iat1_moral_range es False
+                if iat1_probability_out_of_range is None:
+                    threshold = 0.2
+                    debug_msg = (
+                        "DEBUG: iat1_moral_range False, pero iat1_probability_out_of_range en blanco. Probabilidad ingresada: None. "
+                        "Usando probabilidad por defecto del 20%.")
+                else:
+                    threshold = iat1_probability_out_of_range / 100.0
+                    debug_msg = f"DEBUG: iat1_moral_range False. Probabilidad ingresada: {iat1_probability_out_of_range}%. Usando iat1_probability_out_of_range."
+            rand_val = random.random()
+            if rand_val < threshold:
+                display_label = explicit_label
+            else:
+                display_label = substitute_label
+            # print(f"{debug_msg} Recordatorio: Se define el threshold como {threshold:.2f} "
+            #       f"(valor mínimo para elegir la etiqueta explícita). Valor aleatorio generado: {rand_val:.2f}. "
+            #       f"Resultado: {display_label}")
+
+        # Lógica para categorías 'blanco' o 'negro'
+        elif original_category in ['blanco', 'negro']:
+            substitute_label = "persona"
+            if iat2_moral_range is None:
+                threshold = 0.8
+                debug_msg = ("DEBUG: iat2_moral_range es None. Probabilidad ingresada: None. "
+                             "Usando probabilidad por defecto del 80%.")
+            elif iat2_moral_range is True:
+                if iat2_probability is None:
+                    threshold = 0.8
+                    debug_msg = (
+                        "DEBUG: iat2_moral_range True, pero iat2_probability en blanco. Probabilidad ingresada: None. "
+                        "Usando probabilidad por defecto del 80%.")
+                else:
+                    threshold = iat2_probability / 100.0
+                    debug_msg = f"DEBUG: iat2_moral_range True. Probabilidad ingresada: {iat2_probability}%. Usando iat2_probability."
+            else:  # iat2_moral_range es False
+                if iat2_probability_out_of_range is None:
+                    threshold = 0.2
+                    debug_msg = (
+                        "DEBUG: iat2_moral_range False, pero iat2_probability_out_of_range en blanco. Probabilidad ingresada: None. "
+                        "Usando probabilidad por defecto del 20%.")
+                else:
+                    threshold = iat2_probability_out_of_range / 100.0
+                    debug_msg = f"DEBUG: iat2_moral_range False. Probabilidad ingresada: {iat2_probability_out_of_range}%. Usando iat2_probability_out_of_range."
+            rand_val = random.random()
+            if rand_val < threshold:
+                display_label = explicit_label
+            else:
+                display_label = substitute_label
+            # print(f"{debug_msg} Recordatorio: Se define el threshold como {threshold:.2f} "
+            #       f"(valor mínimo para elegir la etiqueta explícita). Valor aleatorio generado: {rand_val:.2f}. "
+            #       f"Resultado: {display_label}")
+
+        return dict(
+            category=display_label,
+            endowment=Constants.endowment,
+        )
+
+    @staticmethod
+    def error_message(player, values):
+        kept = values['kept']
+        if kept < 0 or kept > Constants.endowment:
+            return f"Por favor, ofrece una cantidad entre 0 y {Constants.endowment}."
+
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        group = player.group
+        set_payoffs(group)
+
+
+class ResultsDictador(Page):
+    @staticmethod
+    def is_displayed(player):
+        # Mostrar la página de resultados final solo en la última ronda (18)
+        return player.round_number == 18
+
+    @staticmethod
+    def vars_for_template(player: Player):
+        dictator_offers = []
+        dictator_round_numbers = [15, 16, 17, 18]
+        for rnd in dictator_round_numbers:
+            p = player.in_round(rnd)
+            assigned = p.group.assigned
+            if assigned is None:
+                assigned = 0  # O cualquier valor predeterminado que tenga sentido en tu contexto
+
+            dictator_offers.append({
+                'round': rnd,
+                'category': p.group.field_maybe_none('dictator_category').capitalize() if p.group.field_maybe_none(
+                    'dictator_category') else "Sin categoría asignada",
+                'kept': p.group.kept,
+                'assigned': assigned,
+            })
+        return dict(
+            dictator_offers=dictator_offers
+        )
+
+
+page_sequence = [
+    UserInfo,
+    PreguntaM,
+    Intro,
+    RoundN,  # Rondas 1-14: IAT
+    IATAssessmentPage,  # Ronda 15: Evaluación del IAT
+    MoralDecisionPageCerteza,  # Ronda 15: Decisión
+    # Results,                   # Por ahora, no queremos mostrar los resultados del IAT. En caso de querer hacer esto e
+    # en caso de querer hacerlo, falta manejar los assement de acuerdo con la aleatorización del IAT.
+    DictatorIntroduction,  # Rondas 16-18: Introducción al Dictador
+    DictatorOffer,  # Rondas 16-18: Oferta del Dictador,    # Rondas 16-18: Espera de Resultados del Dictador
+    ResultsDictador,  # Rondas 16-18: Resultados del Dictador,            # Ronda 18: Resultados Finales del Dictador
+]
+
+
+# página que podría ser útil, probablemente no.
 class Results(Page):
     @staticmethod
     def is_displayed(player):
@@ -865,9 +1298,20 @@ class Results(Page):
         data14 = extract(14)
         dscore2_result = dscore2(data10, data13, data11, data14)
 
-        # Guardar resultados en el jugador
-        player.dscore1 = dscore1_result
-        player.dscore2 = dscore2_result
+        # Recuperar el orden de las rondas del IAT
+        iat_round_order = player.participant.vars.get('iat_round_order', [])
+
+        # Asignar dscore1 y dscore2 según el orden de las rondas
+        if iat_round_order == [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]:
+            player.dscore1 = dscore1_result
+            player.dscore2 = dscore2_result
+        elif iat_round_order == [8, 9, 10, 11, 12, 13, 14, 1, 2, 3, 4, 5, 6, 7]:
+            player.dscore1 = dscore2_result
+            player.dscore2 = dscore1_result
+        else:
+            # Manejo de otros posibles órdenes, si los hay
+            player.dscore1 = dscore1_result
+            player.dscore2 = dscore2_result
 
         # Obtener combinaciones de pares positivos y negativos para el primer IAT
         pos_pairs_iat1 = labels_for_block(get_block_for_round(3, player.session.params))
@@ -927,96 +1371,3 @@ class Results(Page):
             iat2_self_assessment=iat2_self_assessment,
             iat2_assessment_probability=iat2_assessment_probability,
         )
-
-class DictatorIntroduction(Page):
-    """
-    Página de introducción al Juego del Dictador para la categoría asignada.
-    """
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.round_number in [15, 16, 17, 18]
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        group = player.group
-        # Asegurarse de que 'dictator_category' no sea None
-        if group.dictator_category:
-            category = group.dictator_category.capitalize()
-        else:
-            category = "Sin categoría asignada"
-        return dict(
-            category=category,
-            endowment=Constants.endowment
-        )
-
-class DictatorOffer(Page):
-    """
-    Página donde el jugador decide cuánto mantener y cuánto asignar a la categoría.
-    """
-    form_model = 'group'
-    form_fields = ['kept']
-
-    @staticmethod
-    def is_displayed(player: Player):
-        return player.round_number in [15, 16, 17, 18]
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        group = player.group
-        return dict(
-            category=group.dictator_category.capitalize(),
-            endowment=Constants.endowment
-        )
-
-    @staticmethod
-    def error_message(player, values):
-        kept = values['kept']
-        if kept < 0 or kept > Constants.endowment:
-            return f"Por favor, ofrece una cantidad entre 0 y {Constants.endowment}."
-        # No es necesario validar la suma aquí, ya que 'assigned' se calcula automáticamente
-
-    @staticmethod
-    def before_next_page(player: Player, timeout_happened):
-        group = player.group
-        set_payoffs(group)
-
-class ResultsDictador(Page):
-    @staticmethod
-    def is_displayed(player):
-        # Mostrar la página de resultados final solo en la última ronda (18)
-        return player.round_number == 18
-
-    @staticmethod
-    def vars_for_template(player: Player):
-        dictator_offers = []
-        dictator_round_numbers = [15, 16, 17, 18]
-        for rnd in dictator_round_numbers:
-            p = player.in_round(rnd)
-            assigned = p.group.assigned
-            if assigned is None:
-                assigned = 0  # O cualquier valor predeterminado que tenga sentido en tu contexto
-
-            dictator_offers.append({
-                'round': rnd,
-                'category': p.group.field_maybe_none('dictator_category').capitalize() if p.group.field_maybe_none('dictator_category') else "Sin categoría asignada",
-                'kept': p.group.kept,
-                'assigned': assigned,
-            })
-        return dict(
-            dictator_offers=dictator_offers
-        )
-
-
-
-page_sequence = [
-    Intro,
-    UserInfo,
-    PreguntaM,
-    RoundN,                     # Rondas 1-14: IAT
-    IATAssessmentPage,          # Ronda 15: Evaluación del IAT
-    MoralDecisionPageCerteza,   # Ronda 15: Decisión Moral
-    Results,                    # Ronda 15: Resultados del IAT
-    DictatorIntroduction,       # Rondas 16-18: Introducción al Dictador
-    DictatorOffer,              # Rondas 16-18: Oferta del Dictador,    # Rondas 16-18: Espera de Resultados del Dictador
-    ResultsDictador,            # Rondas 16-18: Resultados del Dictador,            # Ronda 18: Resultados Finales del Dictador
-]

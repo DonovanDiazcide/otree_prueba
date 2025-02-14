@@ -1,6 +1,6 @@
-{{ block title }}
-    Moral decision page
-{{ endblock }}
+{% block title %}
+    Probabilities for moral decision page
+{% endblock %}
 
 {% block styles  %}
     <link href="{% static 'iat.css' %}" rel="stylesheet"/>
@@ -64,7 +64,6 @@
         input[type="radio"] {
             margin-right: 10px;
         }
-
         label {
             display: block;
             margin-bottom: 10px;
@@ -72,10 +71,40 @@
             color: #333;
         }
 
+        /* Estilos para el recuadro de información */
+        .info-box {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #e9f5ff;
+            border-left: 5px solid #007bff;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+        }
     </style>
 {% endblock %}
 
 {{ block content }}
+
+   <!-- Recuadro para recordar los límites definidos -->
+    <div class="info-box">
+        <p><strong>Recordatorio de tu rango moralmente aceptable definido:</strong></p>
+        <p>IAT <strong>gato perro:</strong> {{ iat1_lower_limit }} a {{ iat1_upper_limit }}</p>
+        <p>IAT <strong>blanco negro: </strong>{{ iat2_lower_limit }} a {{ iat2_upper_limit }}</p>
+    </div>
+
+
+    <!-- Nuevo mensaje agregado -->
+    <div class="info-box">
+        <p><strong>A continuación, tendrás la oportunidad de cambiar las probabilidades con las que se te revelará información cuando tomes una decisión decisión moral.</strong></p>
+        <p>Hay una probabilidad inicial del 80% de que si tus resultados de cada IAT por separado se encuentran dentro de tu rango moralmente aceptable, se te revele información sobre una decisión moral.</p>
+        <p><strong>¿Qué quieres hacer?</strong></p>
+    </div>
+
+
+
     {{ formfields }}
     {{ next_button }}
+
 {{ endblock }}
