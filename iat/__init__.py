@@ -15,7 +15,7 @@ Implicit Association Test, draft
 """
 from statistics import mean, stdev
 
-
+print("los amo")
 def dscore1(data3: list, data4: list, data6: list, data7: list):
     # Filtrar valores demasiado largos.
     def not_long(value):
