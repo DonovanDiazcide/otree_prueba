@@ -15,10 +15,10 @@ Implicit Association Test, draft
 """
 from statistics import mean, stdev
 
-print("hola mundo ")
-print("Hola")
-print("ayuddasa")
-print("hola")
+print("Hola mundo")
+print("Hola mundo 2")
+
+
 def dscore1(data3: list, data4: list, data6: list, data7: list):
     # Filtrar valores demasiado largos.
     def not_long(value):
